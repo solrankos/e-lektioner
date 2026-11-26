@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Länder på kartan – e-lektioner</title>
+<meta name="description" content="Förhör världens länder på kartan, världsdel för världsdel.">
+<link rel="preload" href="../../assets/fonts/atkinson-hyperlegible-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../../assets/fonts/atkinson-hyperlegible-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="../../assets/css/site.css">
+<link rel="stylesheet" href="../../assets/css/forhor.css">
+<script src="../../assets/js/theme.js"></script>
+<style>
+:root{--map-sea:#9fd0e6;--map-land:#fbf6e6;--map-off:#d9d2b8;--map-border:#8c7a43;--map-target:#e0392b}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){--map-sea:#143b55;--map-land:#5d6f7a;--map-off:#26363f;--map-border:#0f1c24;--map-target:#f4a51c}
+}
+:root[data-theme="dark"]{--map-sea:#143b55;--map-land:#5d6f7a;--map-off:#26363f;--map-border:#0f1c24;--map-target:#f4a51c}
+.map-ask{color:var(--muted);margin:0 0 8px}
+.map svg{display:block;width:100%;height:auto;max-height:62vh;background:var(--map-sea);border-radius:14px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;cursor:zoom-in;margin-bottom:14px}
+.map svg.zoomed{cursor:zoom-out}
+.map .world{transform-origin:0 0;transform-box:view-box;transition:transform .35s ease}
+.map path{fill:var(--map-off);stroke:var(--map-border);stroke-width:.6px;vector-effect:non-scaling-stroke}
+.map .q{fill:var(--map-land)}
+.map circle.q{stroke:var(--map-border);stroke-width:1px;vector-effect:non-scaling-stroke}
+.map .target{fill:var(--map-target)}
+.map .target.ok{fill:var(--fh-ok)}
+.map .target.bad{fill:var(--fh-bad)}
+.map .ring{fill:transparent;stroke:var(--map-target);stroke-width:3px;vector-effect:non-scaling-stroke}
+.map .ring.ok{stroke:var(--fh-ok)}
+.map .ring.bad{stroke:var(--fh-bad)}
+@media (prefers-reduced-motion:reduce){.map .world{transition:none}}
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="site-header-in">
+    <a class="brand" href="../../">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><ellipse cx="12" cy="12" rx="4" ry="9.5"/><path d="M2.5 12h19M4 7h16M4 17h16"/></svg>
+      e-lektioner
+    </a>
+    <ol class="crumbs" aria-label="Du är här">
+      <li><a href="../../#geografi">Geografi</a></li>
+      <li aria-current="page">Länder på kartan</li>
+    </ol>
+    <button class="theme-toggle" type="button">Mörkt läge</button>
+  </div>
+</header>
+
+<main id="app"></main>
+
+<script>
+  window.echarts = { registerMap: function (name, geo) { if (name === "world") window.__worldGeo = geo; } };
+</script>
+<script src="../../assets/vendor/echarts-4.9.0-world.js"></script>
+<script src="../../assets/vendor/d3-7.8.5.min.js"></script>
+<script src="../../assets/js/lander.js"></script>
+<script src="../../assets/js/forhor.js"></script>
+<script>
+(function () {
+  const L = window.LANDER;
+  const V = window.VARLDSDELAR;
+  const byEn = {};
+  L.forEach(x => { if (x.e) byEn[x.e] = x; });
+  Object.entries(window.LANDER_EXTRA_FEATURES).forEach(([en, sv]) => { byEn[en] = L.find(x => x.n === sv); });
+
+  function decodeRing(str, off, scale) {
+    const out = []; let px = off[0], py = off[1];
+    for (let i = 0; i < str.length; i += 2) {
+      let x = str.charCodeAt(i) - 64, y = str.charCodeAt(i + 1) - 64;
+      x = (x >> 1) ^ (-(x & 1)); y = (y >> 1) ^ (-(y & 1));
+      x += px; y += py; px = x; py = y;
+      out.push([x / scale, y / scale]);
+    }
+    return out;
+  }
+  function features() {
+    const geo = window.__worldGeo, scale = geo.UTF8Scale || 1024, enc = !!geo.UTF8Encoding;
+    return geo.features.map(f => {
+      const g = f.geometry;
+      if (!g) return null;
+      const polys = g.type === "Polygon" ? [g.coordinates] : g.coordinates;
+      const offs = g.type === "Polygon" ? [g.encodeOffsets] : (g.encodeOffsets || []);
+      const coords = polys.map((poly, i) => poly.map((ring, j) => {
+        const r = (enc && typeof ring === "string") ? decodeRing(ring, offs[i][j], scale) : ring.slice();
+        if (d3.geoArea({ type: "Polygon", coordinates: [r] }) > 2 * Math.PI) r.reverse();
+        return r;
+      }));
+      return { name: f.properties.name, geo: { type: "MultiPolygon", coordinates: coords } };
+    }).filter(Boolean);
+  }
+  const FEATS = features();
+  const maps = {};
+
+  function buildMap(vid) {
+    const v = V.find(x => x.id === vid), [lon0, lon1, lat0, lat1] = v.b, W = 1000;
+    const pts = [];
+    for (let lo = lon0; lo <= lon1; lo += 2) pts.push([lo, lat0], [lo, lat1]);
+    for (let la = lat0; la <= lat1; la += 2) pts.push([lon0, la], [lon1, la]);
+    const bbox = { type: "MultiPoint", coordinates: pts };
+    const proj = d3.geoMercator().rotate([-(lon0 + lon1) / 2, 0]).fitWidth(W, bbox);
+    const b = d3.geoPath(proj).bounds(bbox);
+    const t = proj.translate();
+    proj.translate([t[0] - b[0][0], t[1] - b[0][1]]);
+    const H = Math.ceil(b[1][1] - b[0][1]);
+    proj.clipExtent([[0, 0], [W, H]]);
+    const path = d3.geoPath(proj);
+    const round = d => d.replace(/(\.\d)\d+/g, "$1");
+    const front = {}, info = {};
+    let back = "";
+    FEATS.forEach(f => {
+      const d = path(f.geo);
+      if (!d) return;
+      const c = byEn[f.name];
+      if (c && c.w === vid) {
+        front[c.n] = (front[c.n] || "") + round(d);
+        const a = path.area(f.geo), ce = path.centroid(f.geo);
+        const cur = info[c.n];
+        info[c.n] = { a: (cur ? cur.a : 0) + a, c: !cur || a > cur.big ? ce : cur.c, big: Math.max(a, cur ? cur.big : 0) };
+      } else back += `<path d="${round(d)}"/>`;
+    });
+    let fr = "";
+    Object.entries(front).forEach(([n, d]) => { fr += `<path class="q" data-c="${Forhor.esc(n)}" d="${d}"/>`; });
+    L.filter(x => x.w === vid && x.p && !front[x.n]).forEach(x => {
+      const p = proj(x.p);
+      info[x.n] = { a: 0, c: p, point: true };
+      fr += `<circle class="q" data-c="${Forhor.esc(x.n)}" cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="5"/>`;
+    });
+    const wrap = document.createElement("div");
+    wrap.className = "map";
+    wrap.innerHTML = `<p class="map-ask">Vilket land är markerat?</p><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Karta över ${v.name}"><g class="world">${back}<g class="front">${fr}</g><circle class="ring" r="26" cx="-100" cy="-100"/></g></svg>`;
+    const m = { wrap, svg: wrap.querySelector("svg"), world: wrap.querySelector(".world"), ring: wrap.querySelector(".ring"), info, W, H, zoomed: false, target: null };
+    m.svg.addEventListener("click", () => setZoom(m, !m.zoomed));
+    return m;
+  }
+
+  function getMap(vid) { return maps[vid] || (maps[vid] = buildMap(vid)); }
+
+  function setZoom(m, on) {
+    m.zoomed = on;
+    m.svg.classList.toggle("zoomed", on);
+    if (!on || !m.target) { m.world.style.transform = ""; return; }
+    const k = 2, c = m.info[m.target].c, { W, H } = m;
+    const tx = Math.min(0, Math.max(W - k * W, W / 2 - k * c[0]));
+    const ty = Math.min(0, Math.max(H - k * H, H / 2 - k * c[1]));
+    m.world.style.transform = `translate(${tx}px, ${ty}px) scale(${k})`;
+  }
+
+  let shown = null;
+  function showCountry(slot, x) {
+    const m = getMap(x.w);
+    if (slot.firstChild !== m.wrap) { slot.innerHTML = ""; slot.appendChild(m.wrap); }
+    m.svg.querySelectorAll(".target").forEach(el => el.classList.remove("target", "ok", "bad"));
+    const el = m.svg.querySelector(`[data-c="${CSS.escape(x.n)}"]`);
+    el.classList.add("target");
+    el.parentNode.appendChild(el);
+    m.target = x.n;
+    const g = m.info[x.n];
+    m.ring.classList.remove("ok", "bad");
+    const small = g.point || g.a < 150;
+    m.ring.setAttribute("cx", small ? g.c[0] : -100);
+    m.ring.setAttribute("cy", small ? g.c[1] : -100);
+    setZoom(m, false);
+    shown = { m, el };
+  }
+
+  const groups = [...V.map(v => ({ id: v.id, name: v.name })), { id: "ALL", name: "Hela världen" }];
+  const countryPool = L.map(x => ({ key: x.n, names: [x.n, ...(x.na || [])] }));
+
+  Forhor.start({
+    el: document.getElementById("app"),
+    storeKey: "e-lektioner-lander-pa-kartan",
+    title: "Länder på kartan",
+    parentNote: "Förhöret är gjort för dig som förälder som vill förhöra ditt barn: välj världsdel, peka på det markerade landet och låt barnet säga eller skriva namnet.",
+    groups,
+    noun: ["land", "länder"],
+    items: id => L.filter(x => id === "ALL" || x.w === id).map(x => Object.assign({ id: x.n }, x)),
+    intro: n => `Ett land i taget är markerat på kartan. Första omgången tar alla ${n} länder, och varje ny omgång tar bara de som blev fel eller osäkra. När man skriver behöver stavningen inte vara perfekt.`,
+    name: x => x.n,
+    question(x) {
+      const peers = L.filter(y => y.w === x.w && y.n !== x.n);
+      return {
+        render: slot => showCountry(slot, x),
+        correct: x.n, wrong: Forhor.pick(peers, 3).map(y => y.n),
+        key: x.n, pool: countryPool, typedLabel: "Landets namn",
+        hint: "Tryck på kartan för att zooma in, och en gång till för att zooma ut."
+      };
+    },
+    onAnswer(x, ok) {
+      if (!shown) return;
+      shown.el.classList.add(ok ? "ok" : "bad");
+      shown.m.ring.classList.add(ok ? "ok" : "bad");
+    }
+  });
+})();
+</script>
+</body>
+</html>
