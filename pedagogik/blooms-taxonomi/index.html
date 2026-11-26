@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Blooms taxonomi – e-lektioner</title>
-<meta name="description" content="Blooms taxonomi för lärandemål i sex steg. Originalet och två förenklade varianter för barn med liknelser från fotboll och slöjd.">
+<meta name="description" content="Blooms taxonomi för lärandemål i sex steg. Originalet och två förenklade varianter för barn med liknelser från fotboll och syslöjd.">
 <link rel="preload" href="../../assets/fonts/atkinson-hyperlegible-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="../../assets/fonts/atkinson-hyperlegible-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="../../assets/css/site.css">
@@ -129,7 +129,7 @@ h1{font-size:clamp(1.5rem,4vw,2.1rem);line-height:1.1;margin:0}
       <div role="group" aria-label="Variant" style="display:flex;flex-wrap:wrap;gap:8px">
         <button class="chip" type="button" data-variant="original">Original</button>
         <button class="chip" type="button" data-variant="fotboll">Fotboll</button>
-        <button class="chip" type="button" data-variant="slojd">Slöjd</button>
+        <button class="chip" type="button" data-variant="slojd">Syslöjd</button>
       </div>
       <button class="primary print" type="button" id="print">Skriv ut / spara som PDF</button>
     </div>
@@ -214,36 +214,36 @@ h1{font-size:clamp(1.5rem,4vw,2.1rem);line-height:1.1;margin:0}
       ]
     },
     slojd: {
-      title: "Lärandets trappa – slöjd",
+      title: "Lärandets trappa – syslöjd",
       sub: "Sex steg för att lära sig något, från att komma ihåg till att bedöma.",
-      help: "Klicka på ett steg. Varje steg förklaras med slöjd. Ju högre upp i trappan, desto mer kan man.",
-      pdfName: "Blooms taxonomi – slöjd",
+      help: "Klicka på ett steg. Varje steg förklaras med syslöjd. Ju högre upp i trappan, desto mer kan man.",
+      pdfName: "Blooms taxonomi – syslöjd",
       source: SOURCE_SHORT,
       levels: [
         {name:"Komma ihåg", orig:"Faktakunskaper",
          verbs:["Nämna","Lista","Upprepa"],
-         simile:"Du vet vad verktygen och materialen heter: fogsvans, syl, symaskin, sandpapper, furu och bomullstyg.",
-         example:"Vad heter sågen som du sågar raka snitt med?"},
+         simile:"Du vet vad sakerna heter: symaskin, knappnål, sax, tråd, sömsmån och bomullstyg.",
+         example:"Vad heter nålen som håller ihop tyget innan du syr?"},
         {name:"Förstå", orig:"Förståelse",
          verbs:["Förklara","Ge exempel","Sammanfatta","Skriva om"],
-         simile:"Du kan förklara med egna ord varför man nålar tyget innan man syr, eller varför man slipar med fibrerna.",
-         example:"Förklara varför man slipar med grövre sandpapper först och finare sist."},
+         simile:"Du kan förklara med egna ord varför man nålar tyget innan man syr, eller varför man lämnar sömsmån.",
+         example:"Förklara varför man stryker sömmarna innan man syr vidare."},
         {name:"Använda", orig:"Tillämpning",
          verbs:["Använda","Visa","Lösa","Mäta"],
-         simile:"Du följer en beskrivning och gör det själv: mäter, sågar och spikar ihop en fågelholk.",
-         example:"Mät upp och såga till en bit som är exakt 20 cm lång."},
+         simile:"Du följer ett mönster och gör det själv: mäter, klipper ut och syr ihop en tygpåse.",
+         example:"Mät upp och klipp ut en tygbit som är 30 × 40 cm."},
         {name:"Undersöka", orig:"Analys",
          verbs:["Peka ut","Sortera","Dela upp","Urskilja"],
-         simile:"Du tittar noga på en sak för att se hur den är byggd. Vilka delar har en stol, och hur sitter de ihop?",
-         example:"Titta på en ryggsäck. Vilka delar är den sydd av och hur sitter de ihop?"},
+         simile:"Du tittar noga på ett plagg för att se hur det är sytt. Vilka delar har en tröja, och hur sitter de ihop?",
+         example:"Vänd en ryggsäck ut och in. Vilka delar är den sydd av, och vilka sömmar ser du?"},
         {name:"Skapa", orig:"Syntes",
          verbs:["Skapa","Planera","Kombinera","Hitta på"],
-         simile:"Du hittar på en egen sak: skissar, väljer material och kombinerar tekniker du redan kan.",
-         example:"Planera och gör en egen förvaringslåda med lock."},
+         simile:"Du hittar på en egen sak: skissar, väljer tyg och kombinerar tekniker du redan kan, som applikation och broderi.",
+         example:"Planera och sy ett eget pennfodral med dragkedja."},
         {name:"Bedöma", orig:"Värdering",
          verbs:["Värdera","Motivera","Ta ställning","Föreslå"],
-         simile:"Du tittar på ditt färdiga arbete. Håller det? Blev det som skissen? Vad skulle du göra annorlunda nästa gång?",
-         example:"Vad blev bra med din låda och vad skulle du ändra? Varför?"}
+         simile:"Du tittar på ditt färdiga arbete. Håller sömmarna? Blev det som skissen? Vad skulle du göra annorlunda nästa gång?",
+         example:"Vad blev bra med ditt pennfodral och vad skulle du ändra? Varför?"}
       ]
     }
   };
@@ -283,7 +283,7 @@ h1{font-size:clamp(1.5rem,4vw,2.1rem);line-height:1.1;margin:0}
     h += '<table><thead><tr><th style="width:11%"></th>' + L.map(function(l){
       return '<th>'+esc(l.name)+'<small>'+esc(kid ? l.orig : l.desc)+'</small></th>';
     }).join("") + '</tr></thead><tbody>';
-    if (kid) h += '<tr><td class="row-label">Som i '+(current==="fotboll"?"fotboll":"slöjd")+'</td>' + L.map(function(l){ return '<td style="text-align:left">'+esc(l.simile)+'</td>'; }).join("") + '</tr>';
+    if (kid) h += '<tr><td class="row-label">Som i '+(current==="fotboll"?"fotboll":"syslöjd")+'</td>' + L.map(function(l){ return '<td style="text-align:left">'+esc(l.simile)+'</td>'; }).join("") + '</tr>';
     h += '<tr><td class="row-label">'+(kid ? "Ord" : "Aktiva verb")+'</td>' + L.map(function(l){ return '<td><ul>'+verbList(l.verbs)+'</ul></td>'; }).join("") + '</tr>';
     h += '<tr><td class="row-label">'+(kid ? "Prova själv" : "Exempel")+'</td>' + L.map(function(l){ return '<td>'+esc(l.example)+'</td>'; }).join("") + '</tr>';
     h += '</tbody></table><div class="p-source">'+v.source+'</div>';
