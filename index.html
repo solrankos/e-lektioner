@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>e-lektioner</title>
+<meta name="description" content="Små interaktiva verktyg att visa i klassrummet.">
+<link rel="preload" href="assets/fonts/atkinson-hyperlegible-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/atkinson-hyperlegible-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/css/site.css">
+<script src="assets/js/theme.js"></script>
+<style>
+main{max-width:1040px;margin:0 auto;padding:32px 18px 48px}
+h1{font-size:clamp(2rem,5vw,2.8rem);line-height:1.1;margin:0 0 8px;letter-spacing:-.01em}
+.lede{color:var(--muted);margin:0 0 36px;max-width:46ch}
+.subject{margin-top:28px}
+.subject h2{font-size:1.3rem;margin:0 0 12px}
+.cards{list-style:none;margin:0;padding:0;display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
+.card{
+  display:flex;gap:16px;align-items:center;height:100%;
+  background:var(--panel);border:1.5px solid var(--line);border-radius:14px;
+  padding:16px 18px;text-decoration:none;color:var(--ink);
+  transition:border-color .15s;
+}
+.card:hover{border-color:var(--ink)}
+.card svg{width:64px;height:64px;flex:none}
+.card h3{margin:0 0 2px;font-size:1.08rem}
+.card p{margin:0;color:var(--muted);font-size:.95rem;line-height:1.4}
+footer{max-width:1040px;margin:0 auto;padding:0 18px 32px;color:var(--muted);font-size:.85rem}
+@media (prefers-reduced-motion:reduce){.card{transition:none}}
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="site-header-in">
+    <a class="brand" href="./" aria-current="page">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><ellipse cx="12" cy="12" rx="4" ry="9.5"/><path d="M2.5 12h19M4 7h16M4 17h16"/></svg>
+      e-lektioner
+    </a>
+    <button class="theme-toggle" type="button">Mörkt läge</button>
+  </div>
+</header>
+
+<main>
+  <h1>e-lektioner</h1>
+  <p class="lede">Små interaktiva verktyg att visa i klassrummet, sorterade efter ämne.</p>
+
+  <section class="subject" aria-labelledby="geografi">
+    <h2 id="geografi">Geografi</h2>
+    <ul class="cards">
+      <li>
+        <a class="card" href="geografi/globen-och-gradnatet/">
+          <svg viewBox="0 0 64 64" aria-hidden="true">
+            <circle cx="32" cy="32" r="29" fill="var(--ocean-b)"/>
+            <path d="M14 22c6-6 14-4 18 0s4 10-2 12-10 6-8 12c-6-2-12-8-12-14 0-4 2-8 4-10z" fill="var(--land)"/>
+            <path d="M40 12c6 2 12 8 14 14-4 2-8 0-10-4s-6-6-4-10z" fill="var(--land)"/>
+            <g fill="none" stroke="var(--grid)" stroke-width="1.4">
+              <ellipse cx="32" cy="32" rx="12" ry="29"/>
+              <path d="M3 32h58M7 18h50M7 46h50"/>
+            </g>
+            <path d="M3 32h58" stroke="var(--hl-equator)" stroke-width="2.4"/>
+            <circle cx="32" cy="32" r="29" fill="none" stroke="var(--rim)" stroke-width="1.5"/>
+          </svg>
+          <div>
+            <h3>Globen och gradnätet</h3>
+            <p>Vrid globen och visa breddgrader, längdgrader, ekvatorn och vändkretsarna.</p>
+          </div>
+        </a>
+      </li>
+    </ul>
+  </section>
+</main>
+
+<footer>
+  Kod: MIT. Innehåll: CC BY 4.0.
+</footer>
+</body>
+</html>
