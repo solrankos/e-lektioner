@@ -1,0 +1,476 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Placera koordinaten – e-lektioner</title>
+<meta name="description" content="Placera en koordinat på kartan. Världen, världsdelar och Norden i tre svårighetsgrader.">
+<link rel="preload" href="../../assets/fonts/atkinson-hyperlegible-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../../assets/fonts/atkinson-hyperlegible-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="../../assets/css/site.css">
+<script src="../../assets/js/theme.js"></script>
+<style>
+:root{
+  --ocean:#8fc3dc;
+  --map-grid:rgba(20,48,63,.32); --map-grid-minor:rgba(20,48,63,.14); --map-grid-main:rgba(20,48,63,.8); --axis:#14303f;
+  --special:#b5452c;
+  --guess:#1f5fd1; --target:#1a8a4a; --wrong:#d0342c; --good-bg:#e1f3e8; --bad-bg:#fbe5e3;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ocean:#1d4d69;
+    --map-grid:rgba(228,238,243,.3); --map-grid-minor:rgba(228,238,243,.12); --map-grid-main:rgba(228,238,243,.75); --axis:#e4eef3;
+    --special:#ff9b7d;
+    --guess:#6ea2ff; --target:#4fd68a; --wrong:#ff7469; --good-bg:#173a28; --bad-bg:#43211f;
+  }
+}
+:root[data-theme="dark"]{
+  --ocean:#1d4d69;
+  --map-grid:rgba(228,238,243,.3); --map-grid-minor:rgba(228,238,243,.12); --map-grid-main:rgba(228,238,243,.75); --axis:#e4eef3;
+  --special:#ff9b7d;
+  --guess:#6ea2ff; --target:#4fd68a; --wrong:#ff7469; --good-bg:#173a28; --bad-bg:#43211f;
+}
+main{max-width:1000px;margin:0 auto;padding:18px 14px 40px}
+h1{font-size:clamp(1.5rem,4vw,2.1rem);line-height:1.1;margin:0}
+.help{color:var(--muted);margin:4px 0 12px;max-width:62ch;font-size:.95rem}
+nav.regions{display:flex;gap:6px;overflow-x:auto;padding:2px 2px 10px;margin:0 -2px;scrollbar-width:thin}
+nav.regions a{flex:0 0 auto;text-decoration:none;color:var(--ink);padding:8px 14px;border-radius:10px;border:1.5px solid var(--line);font-size:.95rem;white-space:nowrap}
+nav.regions a[aria-current="page"]{background:var(--chip-on);color:var(--chip-on-ink);border-color:var(--chip-on);font-weight:700}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+.controls .chip{font-size:.95rem;padding:8px 15px}
+.primary{font:inherit;border:0;border-radius:999px;cursor:pointer;background:var(--chip-on);color:var(--chip-on-ink);font-weight:700;padding:11px 22px;font-size:1.02rem}
+.primary:disabled{opacity:.4;cursor:not-allowed}
+label.toggle{display:inline-flex;align-items:center;gap:6px;font-size:.95rem;cursor:pointer;margin-left:4px}
+label.toggle input{width:18px;height:18px;accent-color:var(--chip-on)}
+.task{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 18px;background:var(--panel);border-radius:14px;padding:12px 18px;margin-bottom:10px}
+.task .q{font-size:.92rem;color:var(--muted)}
+.task .coord{font-size:clamp(1.5rem,5vw,2.2rem);font-weight:700;line-height:1.15;font-variant-numeric:tabular-nums}
+.task .score{text-align:right;font-variant-numeric:tabular-nums}
+.task .score b{font-size:1.3rem}
+.mapwrap{position:relative}
+svg#map{display:block;width:100%;height:auto;max-height:74vh;touch-action:none;user-select:none;-webkit-user-select:none;cursor:crosshair}
+.readout{position:absolute;right:8px;top:8px;background:var(--panel);border-radius:8px;padding:3px 9px;font-size:.9rem;font-variant-numeric:tabular-nums;pointer-events:none}
+.bottom{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:center;margin-top:12px}
+.feedback{flex:1 1 320px;border-radius:12px;padding:10px 16px;background:var(--panel);min-height:48px}
+.feedback.good{background:var(--good-bg)}
+.feedback.bad{background:var(--bad-bg)}
+.feedback p{margin:0}
+.feedback p + p{margin-top:4px}
+.summary{background:var(--panel);border-radius:14px;padding:18px 20px;margin-top:12px}
+.summary h2{margin:0 0 6px;font-size:1.35rem}
+.summary ol{margin:8px 0 14px;padding-left:1.3em}
+.summary li{margin:2px 0}
+.ok{color:var(--target);font-weight:700}
+.no{color:var(--wrong);font-weight:700}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="site-header-in">
+    <a class="brand" href="../../">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><ellipse cx="12" cy="12" rx="4" ry="9.5"/><path d="M2.5 12h19M4 7h16M4 17h16"/></svg>
+      e-lektioner
+    </a>
+    <ol class="crumbs" aria-label="Du är här">
+      <li><a href="../../#geografi">Geografi</a></li>
+      <li aria-current="page">Placera koordinaten</li>
+    </ol>
+    <button class="theme-toggle" type="button">Mörkt läge</button>
+  </div>
+</header>
+
+<main>
+  <h1>Placera koordinaten</h1>
+  <p class="help">Breddgraden står först och visar läget norr–söder om ekvatorn. Längdgraden visar läget öster–väster om nollmeridianen.</p>
+
+  <nav class="regions" id="tabs" aria-label="Kartor"></nav>
+
+  <div class="controls" role="group" aria-label="Svårighetsgrad">
+    <button class="chip" type="button" data-level="easy">Lätt</button>
+    <button class="chip" type="button" data-level="medium">Medel</button>
+    <button class="chip" type="button" data-level="hard">Svår</button>
+    <label class="toggle"><input type="checkbox" id="practice"> Visa markörens läge</label>
+  </div>
+
+  <div class="task">
+    <div>
+      <div class="q" id="qnum">Fråga 1 av 10</div>
+      <div class="coord" id="target">–</div>
+    </div>
+    <div class="score"><div class="q">Rätt</div><b id="score">0</b></div>
+  </div>
+
+  <div class="mapwrap">
+    <svg id="map" tabindex="0" preserveAspectRatio="xMidYMid meet" aria-label="Karta med gradnät. Tryck för att placera en punkt, piltangenterna flyttar den."></svg>
+    <div class="readout" id="readout" hidden></div>
+  </div>
+
+  <div class="bottom" id="bottom">
+    <div class="feedback" id="feedback"></div>
+    <button class="primary" type="button" id="action" disabled>Kontrollera</button>
+  </div>
+
+  <div class="summary" id="summary" hidden>
+    <h2 id="sumTitle"></h2>
+    <ol id="sumList"></ol>
+    <button class="primary" type="button" id="again">Spela igen</button>
+  </div>
+</main>
+
+<script>
+  window.echarts = { registerMap: function(name, geo){ if (name === "world") window.__worldGeo = geo; } };
+</script>
+<script src="../../assets/vendor/echarts-4.9.0-world.js"></script>
+<script>
+(function(){
+  const NS = "http://www.w3.org/2000/svg";
+
+  function decodeRing(str, off, scale){
+    const out = []; let px = off[0], py = off[1];
+    for (let i = 0; i < str.length; i += 2){
+      let x = str.charCodeAt(i) - 64, y = str.charCodeAt(i + 1) - 64;
+      x = (x >> 1) ^ (-(x & 1)); y = (y >> 1) ^ (-(y & 1));
+      x += px; y += py; px = x; py = y;
+      out.push([x / scale, y / scale]);
+    }
+    return out;
+  }
+  function loadRings(){
+    const geo = window.__worldGeo;
+    if (!geo || !geo.features) return null;
+    const scale = geo.UTF8Scale || 1024, enc = !!geo.UTF8Encoding, shapes = [];
+    geo.features.forEach(f => {
+      const g = f.geometry; if (!g) return;
+      const polys = g.type === "Polygon" ? [g.coordinates] : g.type === "MultiPolygon" ? g.coordinates : [];
+      const offs = g.type === "Polygon" ? [g.encodeOffsets] : (g.encodeOffsets || []);
+      const rings = [];
+      polys.forEach((poly, i) => poly.forEach((ring, j) => {
+        const r = (enc && typeof ring === "string") ? decodeRing(ring, offs[i][j], scale) : ring;
+        if (r && r.length > 2) rings.push(r);
+      }));
+      if (rings.length) shapes.push(rings);
+    });
+    return shapes.length > 20 ? shapes : null;
+  }
+  const RAW = [
+    [[-168,66],[-156,71],[-140,70],[-125,70],[-110,73],[-95,72],[-85,69],[-80,63],[-94,59],[-90,57],[-82,52],[-79,55],[-77,62],[-70,60],[-64,60],[-60,55],[-56,52],[-60,47],[-66,45],[-70,42],[-74,40],[-76,35],[-81,31],[-80,26],[-82,25],[-83,29],[-89,30],[-94,29],[-97,26],[-97,22],[-95,19],[-91,19],[-87,21],[-88,16],[-83,15],[-83,10],[-79,9],[-77,8],[-80,7],[-85,10],[-88,13],[-92,15],[-96,16],[-105,20],[-110,24],[-115,30],[-117,32],[-121,35],[-124,40],[-124,46],[-127,50],[-133,55],[-140,60],[-150,61],[-155,58],[-163,55],[-158,58],[-165,60],[-165,64]],
+    [[-73,78],[-60,82],[-35,83],[-20,82],[-18,76],[-22,70],[-32,68],[-40,65],[-44,60],[-50,62],[-54,67],[-56,72],[-66,76]],
+    [[-77,8],[-72,12],[-62,11],[-52,5],[-50,0],[-44,-2],[-35,-5],[-35,-9],[-39,-14],[-41,-22],[-48,-26],[-53,-34],[-58,-35],[-57,-39],[-65,-41],[-65,-45],[-68,-50],[-69,-55],[-74,-53],[-75,-46],[-73,-38],[-71,-30],[-70,-18],[-76,-14],[-81,-6],[-80,0],[-78,2]],
+    [[-9,43],[-9,37],[-6,36],[-1,37],[3,42],[5,43],[9,44],[12,42],[16,38],[18,40],[13,45],[19,42],[23,37],[26,40],[29,41],[36,41],[36,36],[35,33],[34,31],[35,28],[39,21],[43,13],[45,13],[52,16],[58,21],[56,26],[50,30],[48,30],[52,27],[56,27],[61,25],[67,24],[72,21],[73,16],[77,8],[80,13],[80,16],[87,21],[91,22],[94,17],[98,16],[98,8],[101,3],[104,1],[103,5],[100,13],[105,9],[109,12],[108,17],[106,20],[110,21],[117,23],[121,28],[122,31],[119,35],[122,37],[118,38],[121,41],[126,38],[127,35],[129,36],[130,42],[135,44],[140,48],[141,53],[137,54],[141,59],[150,59],[156,58],[162,56],[160,61],[165,62],[178,64],[180,66],[180,69],[170,70],[160,70],[150,71],[140,72],[130,71],[120,73],[110,76],[100,78],[90,75],[80,73],[70,73],[68,69],[60,70],[50,68],[44,68],[40,66],[33,69],[25,71],[15,69],[8,63],[5,59],[8,58],[11,59],[13,56],[10,54],[8,55],[6,53],[3,51],[-2,48],[-4,48],[-1,46],[-2,44]],
+    [[-17,21],[-16,15],[-17,12],[-13,8],[-8,4],[-2,5],[5,6],[9,4],[9,-1],[12,-5],[13,-12],[12,-17],[15,-27],[18,-34],[20,-35],[26,-34],[32,-29],[35,-24],[40,-16],[40,-10],[39,-4],[43,2],[51,11],[44,11],[43,13],[39,16],[36,22],[34,28],[32,31],[25,32],[20,31],[15,32],[10,34],[10,37],[3,37],[-2,35],[-6,36],[-10,30],[-13,27]],
+    [[114,-22],[116,-35],[123,-34],[131,-31],[138,-35],[141,-38],[147,-39],[150,-37],[153,-28],[153,-25],[146,-19],[145,-14],[142,-11],[141,-17],[136,-15],[137,-12],[131,-11],[126,-14],[122,-18]],
+    [[-5,50],[1,51],[2,53],[-2,56],[-2,58],[-5,59],[-6,56],[-5,54],[-3,54],[-5,52]],
+    [[-10,52],[-6,52],[-6,55],[-8,55]],
+    [[-24,65],[-14,66],[-14,64],[-22,63]],
+    [[130,31],[132,34],[135,34],[140,35],[141,38],[142,42],[145,43],[141,45],[140,41],[136,37],[131,35]],
+    [[44,-25],[47,-25],[50,-15],[49,-12],[44,-16]],
+    [[109,1],[111,-3],[116,-4],[119,1],[117,7],[113,3]],
+    [[95,5],[98,4],[106,-6],[101,-3]],
+    [[131,-1],[141,-3],[150,-10],[143,-9],[137,-5]],
+    [[172,-34],[178,-38],[174,-41],[172,-44],[167,-46],[171,-41]]
+  ];
+  const ant = [];
+  for (let l = -180; l <= 180; l += 10){ let lat = -71 + 3.5*Math.sin(l*Math.PI/50); if (l === -70) lat = -66; if (l === -60) lat = -63; ant.push([l, lat]); }
+  ant.push([180,-90],[-180,-90]); RAW.push(ant);
+  const SHAPES = loadRings() || RAW.map(r => [r]);
+  const DETAILED = SHAPES.length > 20;
+
+  const REGIONS = [
+    {id:"varlden", name:"Världen", b:[-180,180,-90,90], grid:15, minor:null, label:30, dec:0,
+      levels:{easy:{step:30,tol:5}, medium:{step:15,tol:4}, hard:{step:5,tol:3}}, margin:15},
+    {id:"europa", name:"Europa", b:[-25,45,34,72], grid:5, minor:null, label:10, dec:0,
+      levels:{easy:{step:10,tol:2.5}, medium:{step:5,tol:2}, hard:{step:1,tol:1.2}}, margin:2},
+    {id:"norden", name:"Norden", b:[3,33,54,71.5], grid:5, minor:1, label:5, dec:1,
+      levels:{easy:{step:5,tol:1.2}, medium:{step:1,tol:0.6}, hard:{step:0.5,tol:0.35}}, margin:1},
+    {id:"afrika", name:"Afrika", b:[-22,56,-38,40], grid:10, minor:5, label:10, dec:0,
+      levels:{easy:{step:10,tol:3}, medium:{step:5,tol:2}, hard:{step:1,tol:1.5}}, margin:3},
+    {id:"asien", name:"Asien", b:[25,150,-12,78], grid:10, minor:5, label:20, dec:0,
+      levels:{easy:{step:20,tol:4}, medium:{step:10,tol:3}, hard:{step:5,tol:2}}, margin:4},
+    {id:"nordamerika", name:"Nordamerika", b:[-170,-50,5,78], grid:10, minor:5, label:20, dec:0,
+      levels:{easy:{step:20,tol:4}, medium:{step:10,tol:3}, hard:{step:5,tol:2}}, margin:4},
+    {id:"sydamerika", name:"Sydamerika", b:[-88,-30,-57,15], grid:10, minor:5, label:10, dec:0,
+      levels:{easy:{step:10,tol:3}, medium:{step:5,tol:2}, hard:{step:1,tol:1.5}}, margin:3},
+    {id:"oceanien", name:"Oceanien", b:[110,180,-50,2], grid:10, minor:5, label:10, dec:0,
+      levels:{easy:{step:10,tol:3}, medium:{step:5,tol:2}, hard:{step:1,tol:1.5}}, margin:3}
+  ];
+  const SPECIAL = [
+    {lat:66.56, name:"Norra polcirkeln"},
+    {lat:23.44, name:"Kräftans vändkrets"},
+    {lat:-23.44, name:"Stenbockens vändkrets"},
+    {lat:-66.56, name:"Södra polcirkeln"}
+  ];
+  const ROUNDS = 10;
+
+  const $ = id => document.getElementById(id);
+  const svg = $("map");
+  const el = (tag, attrs, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); (parent || svg).appendChild(e); return e; };
+  const num = (a, dec) => { const f = Math.pow(10, dec); const v = Math.round(Math.abs(a) * f) / f; return String(v).replace(".", ","); };
+  const roundTo = (a, dec) => { const f = Math.pow(10, dec); return Math.round(a * f) / f; };
+
+  let R = REGIONS[0], P = null;
+  const latTxt = (l, dec) => { const v = roundTo(l, dec); return v === 0 ? "0°" : num(v, dec) + "° " + (v > 0 ? "N" : "S"); };
+  const lonTxt = (l, dec) => { const v = roundTo(l, dec); return (v === 0 || Math.abs(v) === 180) ? num(v, dec) + "°" : num(v, dec) + "° " + (v > 0 ? "Ö" : "V"); };
+  const coordTxt = (p, dec) => latTxt(p.lat, dec) + ", " + lonTxt(p.lon, dec);
+
+  function makeProjection(r){
+    const [w0, e0, s0, n0] = r.b;
+    const c = Math.cos(((s0 + n0) / 2) * Math.PI / 180);
+    const spanX = (e0 - w0) * c, spanY = n0 - s0;
+    const K = Math.min(720 / spanX, 520 / spanY);
+    return {K, c, W: spanX * K, H: spanY * K,
+      X: lon => (lon - w0) * K * c, Y: lat => (n0 - lat) * K,
+      LON: x => x / (K * c) + w0, LAT: y => n0 - y / K};
+  }
+
+  let resultG, guessG, gDot, gh, gv;
+  function buildMap(){
+    P = makeProjection(R);
+    const {W, H, X, Y} = P, [w0, e0, s0, n0] = R.b;
+    svg.innerHTML = "";
+    svg.setAttribute("viewBox", `-58 -32 ${W + 72} ${H + 68}`);
+
+    const defs = el("defs", {});
+    const cp = el("clipPath", {id:"clip"}, defs); el("rect", {x:0, y:0, width:W, height:H}, cp);
+    el("rect", {x:0, y:0, width:W, height:H, fill:"var(--ocean)"});
+
+    const body = el("g", {"clip-path":"url(#clip)"});
+    const landG = el("g", {fill:"var(--land)", stroke:"var(--land-edge)", "stroke-width": DETAILED ? 0.6 : 0.9, "stroke-linejoin":"round", "fill-rule":"evenodd"}, body);
+    const pad = 2;
+    SHAPES.forEach(rings => {
+      let d = "";
+      rings.forEach(r => {
+        let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;
+        for (const p of r){ if (p[0]<minX)minX=p[0]; if (p[0]>maxX)maxX=p[0]; if (p[1]<minY)minY=p[1]; if (p[1]>maxY)maxY=p[1]; }
+        if (maxX < w0 - pad || minX > e0 + pad || maxY < s0 - pad || minY > n0 + pad) return;
+        d += "M" + r.map(p => X(p[0]).toFixed(1) + " " + Y(p[1]).toFixed(1)).join("L") + "Z";
+      });
+      if (d) el("path", {d}, landG);
+    });
+
+    const gridG = el("g", {}, body);
+    const ticks = (a, b, s) => { const out = []; for (let v = Math.ceil(a / s) * s; v <= b + 1e-9; v += s) out.push(Math.round(v * 1000) / 1000); return out; };
+    if (R.minor){
+      ticks(s0, n0, R.minor).forEach(l => { if (l % R.grid) el("line", {x1:0, x2:W, y1:Y(l), y2:Y(l), stroke:"var(--map-grid-minor)", "stroke-width":0.7}, gridG); });
+      ticks(w0, e0, R.minor).forEach(l => { if (l % R.grid) el("line", {y1:0, y2:H, x1:X(l), x2:X(l), stroke:"var(--map-grid-minor)", "stroke-width":0.7}, gridG); });
+    }
+    ticks(s0, n0, R.grid).forEach(l => { const m = l === 0; el("line", {x1:0, x2:W, y1:Y(l), y2:Y(l), stroke: m ? "var(--map-grid-main)" : "var(--map-grid)", "stroke-width": m ? 1.8 : 1}, gridG); });
+    ticks(w0, e0, R.grid).forEach(l => { const m = l === 0; el("line", {y1:0, y2:H, x1:X(l), x2:X(l), stroke: m ? "var(--map-grid-main)" : "var(--map-grid)", "stroke-width": m ? 1.8 : 1}, gridG); });
+
+    const nm = el("g", {"font-size":12, "font-family":"Atkinson Hyperlegible, system-ui, sans-serif"}, body);
+    SPECIAL.forEach(s => {
+      if (s.lat <= s0 || s.lat >= n0) return;
+      el("line", {x1:0, x2:W, y1:Y(s.lat), y2:Y(s.lat), stroke:"var(--special)", "stroke-width":1.3, "stroke-dasharray":"6 4"}, gridG);
+      el("text", {x:W - 5, y:Y(s.lat) - 5, "text-anchor":"end", fill:"var(--special)", "font-weight":700}, nm).textContent = s.name + " " + num(s.lat, 1) + "°";
+    });
+    if (0 > s0 && 0 < n0) el("text", {x:5, y:Y(0) - 5, fill:"var(--ink)"}, nm).textContent = "Ekvatorn";
+    if (0 > w0 && 0 < e0) el("text", {x:X(0) + 5, y:H - 6, fill:"var(--ink)"}, nm).textContent = "Nollmeridianen";
+
+    el("rect", {x:0, y:0, width:W, height:H, fill:"none", stroke:"var(--axis)", "stroke-width":1.2});
+
+    const lab = el("g", {fill:"var(--ink)", "font-size":16, "font-family":"Atkinson Hyperlegible, system-ui, sans-serif", "font-weight":700});
+    const inside = (v, a, b, m) => v > a + m && v < b - m;
+    ticks(s0, n0, R.label).forEach(l => { if (inside(l, s0, n0, R.label * 0.15)) el("text", {x:-7, y:Y(l) + 5, "text-anchor":"end"}, lab).textContent = latTxt(l, 0); });
+    ticks(w0, e0, R.label).forEach(l => {
+      if (!inside(l, w0, e0, R.label * 0.15)) return;
+      el("text", {x:X(l), y:-10, "text-anchor":"middle"}, lab).textContent = lonTxt(l, 0);
+      el("text", {x:X(l), y:H + 23, "text-anchor":"middle"}, lab).textContent = lonTxt(l, 0);
+    });
+
+    resultG = el("g", {});
+    guessG = el("g", {"pointer-events":"none"});
+    const cross = el("g", {stroke:"var(--guess)", "stroke-width":1, opacity:.55}, guessG);
+    gh = el("line", {x1:0, x2:W}, cross); gv = el("line", {y1:0, y2:H}, cross);
+    gDot = el("circle", {r:7, fill:"var(--guess)", stroke:"#fff", "stroke-width":2.5}, guessG);
+    guessG.style.display = "none";
+  }
+
+  let level = "medium", questions = [], idx = 0, score = 0, guess = null, checked = false, history = [];
+  const actionBtn = $("action"), feedback = $("feedback"), readout = $("readout");
+  const L = () => R.levels[level];
+
+  function makeQuestions(){
+    const {step} = L(), [w0, e0, s0, n0] = R.b, m = R.margin;
+    const range = (a, b) => { const out = []; for (let v = Math.ceil((a + m) / step) * step; v <= b - m + 1e-9; v += step) out.push(Math.round(v * 100) / 100); return out; };
+    const lats = range(s0, n0), lons = range(w0, e0), seen = new Set(), out = [];
+    let tries = 0;
+    while (out.length < ROUNDS && tries++ < 5000){
+      const lat = lats[Math.floor(Math.random() * lats.length)], lon = lons[Math.floor(Math.random() * lons.length)];
+      const k = lat + "," + lon; if (seen.has(k)) continue;
+      seen.add(k); out.push({lat, lon});
+    }
+    return out;
+  }
+
+  function newGame(){
+    questions = makeQuestions(); idx = 0; score = 0; history = [];
+    $("summary").hidden = true; $("bottom").hidden = false;
+    document.querySelectorAll("[data-level]").forEach(b => b.setAttribute("aria-pressed", b.dataset.level === level ? "true" : "false"));
+    showQuestion();
+  }
+
+  function showQuestion(){
+    guess = null; checked = false;
+    resultG.innerHTML = ""; guessG.style.display = "none";
+    $("qnum").textContent = R.name + ": fråga " + (idx + 1) + " av " + ROUNDS;
+    $("target").textContent = coordTxt(questions[idx], R.dec);
+    $("score").textContent = score;
+    feedback.className = "feedback";
+    feedback.innerHTML = matchMedia("(pointer: coarse)").matches
+      ? "<p>Tryck på kartan och dra. Punkten visas en bit ovanför fingret så att du ser den.</p>"
+      : "<p>Klicka på kartan där du tror att platsen ligger. Du kan dra punkten för att finjustera.</p>";
+    actionBtn.textContent = "Kontrollera"; actionBtn.disabled = true;
+    updateReadout();
+  }
+
+  function setGuess(lon, lat){
+    const [w0, e0, s0, n0] = R.b;
+    guess = {lon: Math.max(w0, Math.min(e0, lon)), lat: Math.max(s0, Math.min(n0, lat))};
+    const x = P.X(guess.lon), y = P.Y(guess.lat);
+    guessG.style.display = "";
+    gDot.setAttribute("cx", x); gDot.setAttribute("cy", y);
+    gh.setAttribute("y1", y); gh.setAttribute("y2", y);
+    gv.setAttribute("x1", x); gv.setAttribute("x2", x);
+    actionBtn.disabled = false;
+    updateReadout();
+  }
+
+  function updateReadout(){
+    const on = $("practice").checked && guess && !checked;
+    readout.hidden = !on;
+    if (on) readout.textContent = coordTxt(guess, R.dec);
+  }
+
+  function check(){
+    if (!guess) return;
+    checked = true;
+    const t = questions[idx], tol = L().tol, d = R.dec;
+    const dLat = guess.lat - t.lat, dLon = guess.lon - t.lon;
+    const ok = Math.abs(dLat) <= tol && Math.abs(dLon) <= tol;
+    if (ok) score++;
+    history.push({t, g:{...guess}, ok});
+    $("score").textContent = score;
+
+    const tx = P.X(t.lon), ty = P.Y(t.lat);
+    if (!ok) el("line", {x1:P.X(guess.lon), y1:P.Y(guess.lat), x2:tx, y2:ty, stroke:"var(--wrong)", "stroke-width":2, "stroke-dasharray":"5 4"}, resultG);
+    el("line", {x1:tx, x2:tx, y1:0, y2:P.H, stroke:"var(--target)", "stroke-width":1.5, opacity:.7}, resultG);
+    el("line", {y1:ty, y2:ty, x1:0, x2:P.W, stroke:"var(--target)", "stroke-width":1.5, opacity:.7}, resultG);
+    el("circle", {cx:tx, cy:ty, r:8, fill:"var(--target)", stroke:"#fff", "stroke-width":2.5}, resultG);
+    svg.appendChild(guessG);
+
+    const lines = [];
+    if (ok){
+      lines.push("<strong>Rätt!</strong> Du satte punkten på " + coordTxt(guess, d) + ".");
+    } else {
+      lines.push("<strong>Inte riktigt.</strong> Du satte punkten på " + coordTxt(guess, d) + ". Den gröna punkten visar " + coordTxt(t, d) + ".");
+      const near = (a, b) => Math.abs(a - b) <= tol;
+      const parts = [];
+      if (near(guess.lat, t.lon) && near(guess.lon, t.lat) && !near(guess.lat, t.lat)){
+        parts.push("Det ser ut som att du bytt plats på bredd och längd. Breddgraden kommer först och visar norr–söder.");
+      } else {
+        if (Math.abs(dLat) > tol){
+          if (t.lat !== 0 && near(guess.lat, -t.lat)) parts.push("Kolla N och S: N betyder norr om ekvatorn, S betyder söder om den.");
+          else parts.push("Din punkt ligger " + num(dLat, d) + "° för långt " + (dLat > 0 ? "norrut" : "söderut") + ".");
+        }
+        if (Math.abs(dLon) > tol){
+          if (t.lon !== 0 && near(guess.lon, -t.lon)) parts.push("Kolla Ö och V: Ö betyder öster om nollmeridianen, V betyder väster om den.");
+          else parts.push("Din punkt ligger " + num(dLon, d) + "° för långt " + (dLon > 0 ? "österut" : "västerut") + ".");
+        }
+      }
+      if (parts.length) lines.push(parts.join(" "));
+    }
+    feedback.className = "feedback " + (ok ? "good" : "bad");
+    feedback.innerHTML = lines.map(l => "<p>" + l + "</p>").join("");
+    actionBtn.textContent = idx < ROUNDS - 1 ? "Nästa fråga" : "Se resultat";
+    updateReadout();
+  }
+
+  function next(){ if (idx < ROUNDS - 1){ idx++; showQuestion(); } else finish(); }
+
+  function finish(){
+    $("bottom").hidden = true;
+    resultG.innerHTML = ""; guessG.style.display = "none";
+    history.forEach(h => el("circle", {cx:P.X(h.t.lon), cy:P.Y(h.t.lat), r:7, fill: h.ok ? "var(--target)" : "var(--wrong)", stroke:"#fff", "stroke-width":2}, resultG));
+    $("qnum").textContent = R.name + ": klart";
+    $("target").textContent = score + " av " + ROUNDS + " rätt";
+    $("sumTitle").textContent = score === ROUNDS ? "Alla rätt, snyggt!" : score >= 7 ? "Bra jobbat!" : score >= 4 ? "Bra början. Prova igen!" : "Öva lite till, du lär dig snabbt.";
+    $("sumList").innerHTML = history.map(h => "<li><span class='" + (h.ok ? "ok" : "no") + "'>" + (h.ok ? "Rätt" : "Fel") + "</span> " + coordTxt(h.t, R.dec) + (h.ok ? "" : " (du satte " + coordTxt(h.g, R.dec) + ")") + "</li>").join("");
+    $("summary").hidden = false;
+  }
+
+  const TOUCH_LIFT = 70;
+  function toMap(e, lift){
+    const pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY - (lift || 0);
+    return pt.matrixTransform(svg.getScreenCTM().inverse());
+  }
+  let drag = null;
+  svg.addEventListener("pointerdown", e => {
+    if (checked || !$("summary").hidden) return;
+    const touch = e.pointerType === "touch" || e.pointerType === "pen";
+    const finger = toMap(e);
+    const inMap = finger.x >= 0 && finger.x <= P.W && finger.y >= 0 && finger.y <= P.H;
+    if (!inMap && !guess) return;
+    svg.setPointerCapture(e.pointerId);
+    if (touch){
+      const p = toMap(e, TOUCH_LIFT);
+      setGuess(P.LON(Math.max(0, Math.min(P.W, p.x))), P.LAT(Math.max(0, Math.min(P.H, p.y))));
+      drag = {touch:true};
+      return;
+    }
+    const p = finger;
+    if (!(guess && Math.hypot(p.x - P.X(guess.lon), p.y - P.Y(guess.lat)) < 30)){
+      setGuess(P.LON(Math.max(0, Math.min(P.W, p.x))), P.LAT(Math.max(0, Math.min(P.H, p.y))));
+    }
+    drag = {p, start:{...guess}};
+  });
+  svg.addEventListener("pointermove", e => {
+    if (!drag) return;
+    if (drag.touch){
+      const q = toMap(e, TOUCH_LIFT);
+      setGuess(P.LON(Math.max(0, Math.min(P.W, q.x))), P.LAT(Math.max(0, Math.min(P.H, q.y))));
+      return;
+    }
+    const p = toMap(e);
+    setGuess(drag.start.lon + (p.x - drag.p.x) / (P.K * P.c), drag.start.lat - (p.y - drag.p.y) / P.K);
+  });
+  const endDrag = () => { drag = null; };
+  svg.addEventListener("pointerup", endDrag);
+  svg.addEventListener("pointercancel", endDrag);
+
+  svg.addEventListener("keydown", e => {
+    if (checked || !$("summary").hidden){ if (e.key === "Enter" && checked){ e.preventDefault(); next(); } return; }
+    const base = R.dec ? 0.1 : 1, s = e.shiftKey ? base * 10 : base;
+    const moves = {ArrowUp:[0,s], ArrowDown:[0,-s], ArrowLeft:[-s,0], ArrowRight:[s,0]};
+    if (moves[e.key]){
+      e.preventDefault();
+      const [w0, e0, s0, n0] = R.b;
+      const g = guess || {lon:(w0 + e0) / 2, lat:(s0 + n0) / 2};
+      setGuess(roundTo(g.lon + moves[e.key][0], 1), roundTo(g.lat + moves[e.key][1], 1));
+    } else if (e.key === "Enter" && guess){ e.preventDefault(); check(); }
+  });
+
+  actionBtn.addEventListener("click", () => checked ? next() : check());
+  $("again").addEventListener("click", newGame);
+  $("practice").addEventListener("change", updateReadout);
+  document.querySelectorAll("[data-level]").forEach(b => b.addEventListener("click", () => { level = b.dataset.level; newGame(); }));
+
+  const tabs = $("tabs");
+  REGIONS.forEach(r => { const a = document.createElement("a"); a.href = "#" + r.id; a.textContent = r.name; a.dataset.id = r.id; tabs.appendChild(a); });
+
+  function route(){
+    const id = (location.hash || "").slice(1);
+    R = REGIONS.find(r => r.id === id) || REGIONS[0];
+    tabs.querySelectorAll("a").forEach(a => {
+      if (a.dataset.id === R.id){ a.setAttribute("aria-current", "page"); a.scrollIntoView({block:"nearest", inline:"nearest"}); }
+      else a.removeAttribute("aria-current");
+    });
+    document.title = "Placera koordinaten: " + R.name + " – e-lektioner";
+    buildMap();
+    newGame();
+  }
+  window.addEventListener("hashchange", route);
+  route();
+})();
+</script>
+</body>
+</html>

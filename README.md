@@ -8,6 +8,7 @@ Små interaktiva verktyg att visa i klassrummet, sorterade efter ämne.
 
 ### Geografi
 - [Globen och gradnätet](https://solrankos.github.io/e-lektioner/geografi/globen-och-gradnatet/)
+- [Placera koordinaten](https://solrankos.github.io/e-lektioner/geografi/placera-koordinaten/)
 
 ## Struktur
 
@@ -18,7 +19,7 @@ index.html                     startsida
 assets/css/site.css            gemensamma färger, typsnitt och sidhuvud
 assets/js/theme.js             ljust/mörkt läge
 assets/fonts/                  Atkinson Hyperlegible (SIL OFL 1.1)
-assets/vendor/                 d3 v7.8.5 (ISC)
+assets/vendor/                 d3 v7.8.5 (ISC), echarts 4.9.0 världskarta (Apache-2.0)
 <ämne>/<verktyg>/index.html    ett verktyg
 ```
 
@@ -42,3 +43,4 @@ python3 -m http.server 8000
 - Innehåll (texter och pedagogiskt material): [CC BY 4.0](LICENSE-CONTENT)
 - Typsnittet Atkinson Hyperlegible: [SIL OFL 1.1](assets/fonts/OFL.txt)
 - d3: ISC
+- echarts världskarta: Apache-2.0
