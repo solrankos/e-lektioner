@@ -10,6 +10,9 @@ Små interaktiva verktyg att visa i klassrummet, sorterade efter ämne.
 - [Globen och gradnätet](https://solrankos.github.io/e-lektioner/geografi/globen-och-gradnatet/)
 - [Placera koordinaten](https://solrankos.github.io/e-lektioner/geografi/placera-koordinaten/)
 
+### Pedagogik
+- [Blooms taxonomi](https://solrankos.github.io/e-lektioner/pedagogik/blooms-taxonomi/)
+
 ## Struktur
 
 Ren HTML, CSS och JavaScript utan byggsteg. GitHub Pages serverar `main`-grenen direkt.
