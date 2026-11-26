@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Blooms taxonomi – e-lektioner</title>
+<meta name="description" content="Blooms taxonomi för lärandemål i sex steg. Originalet och två förenklade varianter för barn med liknelser från fotboll och slöjd.">
+<link rel="preload" href="../../assets/fonts/atkinson-hyperlegible-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../../assets/fonts/atkinson-hyperlegible-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="../../assets/css/site.css">
+<script src="../../assets/js/theme.js"></script>
+<style>
+:root{
+  --s1:#dfe9ee; --s2:#cfe0e8; --s3:#bcd5e1; --s4:#a7c8d8; --s5:#8fb9cd; --s6:#76a8c0;
+  --step-ink:#14303f;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --s1:#1c313b; --s2:#213a46; --s3:#274452; --s4:#2d4e5e; --s5:#33596b; --s6:#3a6478;
+    --step-ink:#e4eef3;
+  }
+}
+:root[data-theme="dark"]{
+  --s1:#1c313b; --s2:#213a46; --s3:#274452; --s4:#2d4e5e; --s5:#33596b; --s6:#3a6478;
+  --step-ink:#e4eef3;
+}
+main{max-width:1040px;margin:0 auto;padding:18px 14px 40px}
+h1{font-size:clamp(1.5rem,4vw,2.1rem);line-height:1.1;margin:0}
+.help{color:var(--muted);margin:4px 0 14px;max-width:62ch;font-size:.95rem}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:18px}
+.controls .print{margin-left:auto}
+.primary{font:inherit;border:0;border-radius:999px;cursor:pointer;background:var(--chip-on);color:var(--chip-on-ink);font-weight:700;padding:9px 18px;font-size:.98rem}
+.axis{display:flex;justify-content:space-between;color:var(--muted);font-size:.85rem;margin:0 0 6px}
+.stairs{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;align-items:end;list-style:none;margin:0;padding:0}
+.stairs li{display:flex}
+.step{
+  font:inherit;width:100%;text-align:left;cursor:pointer;color:var(--step-ink);
+  border:2px solid transparent;border-radius:10px 10px 4px 4px;padding:10px 10px 12px;
+  display:flex;flex-direction:column;justify-content:flex-end;gap:2px;
+}
+.step .n{font-size:.8rem;opacity:.75}
+.step .name{font-weight:700;font-size:1.02rem;line-height:1.2}
+.step .orig{font-size:.8rem;opacity:.8}
+.step:hover{border-color:var(--ink)}
+.step[aria-expanded="true"]{border-color:var(--ink);outline:2px solid var(--ink);outline-offset:-4px}
+.stairs li:nth-child(1) .step{background:var(--s1);min-height:90px}
+.stairs li:nth-child(2) .step{background:var(--s2);min-height:130px}
+.stairs li:nth-child(3) .step{background:var(--s3);min-height:170px}
+.stairs li:nth-child(4) .step{background:var(--s4);min-height:210px}
+.stairs li:nth-child(5) .step{background:var(--s5);min-height:250px}
+.stairs li:nth-child(6) .step{background:var(--s6);min-height:290px}
+.detail{background:var(--panel);border:1.5px solid var(--line);border-radius:14px;padding:16px 20px;margin-top:14px}
+.detail h2{margin:0;font-size:1.4rem}
+.detail .sub{color:var(--muted);margin:2px 0 10px}
+.detail h3{font-size:.95rem;margin:14px 0 4px;color:var(--muted)}
+.detail p{margin:0;max-width:70ch}
+.detail .liknelse{font-size:1.1rem}
+.verbs{display:flex;flex-wrap:wrap;gap:6px;list-style:none;margin:0;padding:0}
+.verbs li{background:var(--chip);color:var(--chip-ink);border-radius:999px;padding:4px 12px;font-size:.95rem}
+.hint{color:var(--muted);margin:0}
+.source{color:var(--muted);font-size:.85rem;margin-top:22px;max-width:90ch}
+.source p{margin:0 0 4px}
+.print-only{display:none}
+@media (max-width:700px){
+  .stairs{grid-template-columns:1fr;align-items:stretch}
+  .stairs li .step{min-height:0!important}
+  .stairs li:nth-child(1){margin-left:0}
+  .stairs li:nth-child(2){margin-left:4%}
+  .stairs li:nth-child(3){margin-left:8%}
+  .stairs li:nth-child(4){margin-left:12%}
+  .stairs li:nth-child(5){margin-left:16%}
+  .stairs li:nth-child(6){margin-left:20%}
+  .stairs{display:flex;flex-direction:column-reverse}
+  .axis{flex-direction:column-reverse;gap:2px}
+}
+
+@page{size:A4 landscape;margin:10mm}
+@media print{
+  :root,:root[data-theme="dark"]{
+    --ink:#000;--muted:#333;--line:#888;color-scheme:light;
+  }
+  body{background:#fff;color:#000;font-size:9pt;line-height:1.3}
+  .site-header,.screen-only{display:none!important}
+  .print-only{display:block}
+  main{max-width:none;padding:0}
+  .p-title{font-size:16pt;margin:0;text-align:center}
+  .p-sub{text-align:center;margin:0 0 2pt;font-size:10pt}
+  .p-axis{display:flex;justify-content:space-between;font-size:8.5pt;margin:4pt 0 2pt;border-bottom:1.2pt solid #000;padding-bottom:1pt}
+  table{width:100%;border-collapse:collapse;table-layout:fixed}
+  th,td{border:.8pt solid #000;padding:3pt 4pt;vertical-align:top;text-align:center}
+  thead th{font-weight:700}
+  thead th small{display:block;font-weight:400;font-size:8pt}
+  td.row-label{text-align:left;font-weight:700;width:11%}
+  td ul{list-style:none;margin:0;padding:0}
+  .p-source{font-size:7.5pt;margin-top:6pt}
+  .p-source p{margin:0 0 2pt}
+  .kid{font-size:12pt}
+  .kid .p-title{font-size:22pt}
+  .kid .p-sub{font-size:13pt}
+  .kid .p-axis{font-size:11pt}
+  .kid th,.kid td{padding:6pt 6pt}
+  .kid thead th{font-size:13pt}
+  .kid thead th small{font-size:10pt}
+  .kid .p-source{font-size:9pt}
+}
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="site-header-in">
+    <a class="brand" href="../../">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><ellipse cx="12" cy="12" rx="4" ry="9.5"/><path d="M2.5 12h19M4 7h16M4 17h16"/></svg>
+      e-lektioner
+    </a>
+    <ol class="crumbs" aria-label="Du är här">
+      <li><a href="../../#pedagogik">Pedagogik</a></li>
+      <li aria-current="page">Blooms taxonomi</li>
+    </ol>
+    <button class="theme-toggle" type="button">Mörkt läge</button>
+  </div>
+</header>
+
+<main>
+  <div class="screen-only">
+    <h1>Blooms taxonomi</h1>
+    <p class="help" id="help"></p>
+
+    <div class="controls">
+      <div role="group" aria-label="Variant" style="display:flex;flex-wrap:wrap;gap:8px">
+        <button class="chip" type="button" data-variant="original">Original</button>
+        <button class="chip" type="button" data-variant="fotboll">Fotboll</button>
+        <button class="chip" type="button" data-variant="slojd">Slöjd</button>
+      </div>
+      <button class="primary print" type="button" id="print">Skriv ut / spara som PDF</button>
+    </div>
+
+    <p class="axis" aria-hidden="true"><span>Lägre nivå av lärande</span><span>Högre nivå av lärande →</span></p>
+    <ol class="stairs" id="stairs"></ol>
+
+    <section class="detail" id="detail" aria-live="polite"></section>
+
+    <div class="source" id="source"></div>
+  </div>
+
+  <div class="print-only" id="printout"></div>
+</main>
+
+<script>
+(function(){
+  var SOURCE_FULL =
+    '<p>Modellen bygger på en sammanfattning och översättning som Khalid El Gaidi gjort efter Gronlund N.E. <i>How to Write and Use Instructional Objectives</i> (2000).</p>' +
+    '<p>Bloom, Benjamin S. och David R. Krathwohl. <i>Taxonomy of Educational Objectives: The Classification of Educational Goals, by a committee of college and university examiners. Handbook I: Cognitive Domain.</i> New York, Longmans, Green, 1956.</p>';
+  var SOURCE_SHORT = '<p>Bygger på Blooms taxonomi (Bloom m.fl. 1956).</p>';
+
+  var VARIANTS = {
+    original: {
+      title: "Blooms taxonomi för lärandemål",
+      sub: "Kognitiva mål. Kunskapstaxonomi med några aktiva verb för lärandets resultat.",
+      help: "Klicka på ett steg för att se aktiva verb och ett exempel. Längst ner till vänster är lägst nivå av lärande, längst upp till höger högst.",
+      pdfName: "Blooms taxonomi – original",
+      source: SOURCE_FULL,
+      levels: [
+        {name:"Faktakunskaper", desc:"Komma ihåg",
+         verbs:["Definiera","Beskriva","Nämna","Välja","Identifiera","Lista","Lokalisera","Citera","Recitera","Upprepa","Markera","Ange"],
+         example:"Repetera någon annans definition av en princip"},
+        {name:"Förståelse", desc:"Förstå med egna ord",
+         verbs:["Förklara","Försvara","Skilja","Utveckla","Generalisera","Ge exempel","Förutse","Skriva om","Sammanfatta","Använda"],
+         example:"Förklara principen genom exempel på dess användning inom andra områden"},
+        {name:"Tillämpning", desc:"Använda i den aktuella kontexten",
+         verbs:["Kunna tillämpa","Beräkna","Bevisa","Upptäcka","Modifiera","Verkställa","Förutse","Förbereda","Producera","Relatera","Visa","Lösa","Använda","Skissera"],
+         example:"Personligen använda principen på procedurer i verkliga situationer"},
+        {name:"Analys", desc:"Ta isär i komponenter för att förstå strukturen",
+         verbs:["Identifiera","Urskilja","Illustrera","Peka ut","Relatera","Välja","Separera","Indela","Sortera","Differentiera","Skissera","Ange","Kritiskt bearbeta"],
+         example:"Kan separera fakta från antaganden i principer"},
+        {name:"Syntes", desc:"Sammanställa nya mönster och strukturer",
+         verbs:["Kategorisera","Kombinera","Ställa samman","Utarbeta","Skapa","Tänka ut","Konstruera","Förklara","Framställa","Modifiera","Organisera","Planera","Rekonstruera","Relatera","Sammanfatta"],
+         example:"Kombinerar ett antal principer till en ny fungerande strategi"},
+        {name:"Värdering", desc:"Bedömning genom kriterier",
+         verbs:["Värdera","Jämföra","Komma fram till","Kontrastera","Kritisera","Förklara","Motivera","Bevisa","Avgöra","Relatera","Sammanfatta","Stödja","Försvara","Föreslå","Ta ställning"],
+         example:"Bedöma användningen av den nya strategin"}
+      ]
+    },
+    fotboll: {
+      title: "Lärandets trappa – fotboll",
+      sub: "Sex steg för att lära sig något, från att komma ihåg till att bedöma.",
+      help: "Klicka på ett steg. Varje steg förklaras med fotboll. Ju högre upp i trappan, desto mer kan man.",
+      pdfName: "Blooms taxonomi – fotboll",
+      source: SOURCE_SHORT,
+      levels: [
+        {name:"Komma ihåg", orig:"Faktakunskaper",
+         verbs:["Nämna","Lista","Upprepa"],
+         simile:"Du kan reglerna och vet vad saker heter: hörna, inkast, offside och straff. Du kan rabbla upp alla i ditt lag.",
+         example:"Hur många spelare har ett lag på planen?"},
+        {name:"Förstå", orig:"Förståelse",
+         verbs:["Förklara","Ge exempel","Sammanfatta","Skriva om"],
+         simile:"Du kan förklara med egna ord varför det blev offside och visa det med några kompisar på planen.",
+         example:"Förklara för en kompis vad offside betyder."},
+        {name:"Använda", orig:"Tillämpning",
+         verbs:["Använda","Visa","Lösa","Beräkna"],
+         simile:"Du gör det på riktigt i matchen: du slår en insidespassning när det behövs, inte bara på träningen.",
+         example:"Laget vinner tre matcher och spelar en oavgjord. Hur många poäng får det?"},
+        {name:"Undersöka", orig:"Analys",
+         verbs:["Peka ut","Sortera","Dela upp","Urskilja"],
+         simile:"Du tittar på matchen som en tränare och delar upp den i bitar. Varför släppte vi in mål: försvaret, målvakten eller mittfältet?",
+         example:"Titta på målet i repris. Vilka tre saker hände innan bollen gick in?"},
+        {name:"Skapa", orig:"Syntes",
+         verbs:["Skapa","Planera","Kombinera","Hitta på"],
+         simile:"Du hittar på något nytt, till exempel en egen hörnvariant där laget kombinerar flera knep ni redan kan.",
+         example:"Rita en egen frisparksvariant för ditt lag."},
+        {name:"Bedöma", orig:"Värdering",
+         verbs:["Värdera","Motivera","Ta ställning","Föreslå"],
+         simile:"Som domare eller tränare efter matchen: fungerade planen? Du säger vad som var bra, vad som var dåligt och varför.",
+         example:"Var det rätt att döma straff? Motivera ditt svar."}
+      ]
+    },
+    slojd: {
+      title: "Lärandets trappa – slöjd",
+      sub: "Sex steg för att lära sig något, från att komma ihåg till att bedöma.",
+      help: "Klicka på ett steg. Varje steg förklaras med slöjd. Ju högre upp i trappan, desto mer kan man.",
+      pdfName: "Blooms taxonomi – slöjd",
+      source: SOURCE_SHORT,
+      levels: [
+        {name:"Komma ihåg", orig:"Faktakunskaper",
+         verbs:["Nämna","Lista","Upprepa"],
+         simile:"Du vet vad verktygen och materialen heter: fogsvans, syl, symaskin, sandpapper, furu och bomullstyg.",
+         example:"Vad heter sågen som du sågar raka snitt med?"},
+        {name:"Förstå", orig:"Förståelse",
+         verbs:["Förklara","Ge exempel","Sammanfatta","Skriva om"],
+         simile:"Du kan förklara med egna ord varför man nålar tyget innan man syr, eller varför man slipar med fibrerna.",
+         example:"Förklara varför man slipar med grövre sandpapper först och finare sist."},
+        {name:"Använda", orig:"Tillämpning",
+         verbs:["Använda","Visa","Lösa","Mäta"],
+         simile:"Du följer en beskrivning och gör det själv: mäter, sågar och spikar ihop en fågelholk.",
+         example:"Mät upp och såga till en bit som är exakt 20 cm lång."},
+        {name:"Undersöka", orig:"Analys",
+         verbs:["Peka ut","Sortera","Dela upp","Urskilja"],
+         simile:"Du tittar noga på en sak för att se hur den är byggd. Vilka delar har en stol, och hur sitter de ihop?",
+         example:"Titta på en ryggsäck. Vilka delar är den sydd av och hur sitter de ihop?"},
+        {name:"Skapa", orig:"Syntes",
+         verbs:["Skapa","Planera","Kombinera","Hitta på"],
+         simile:"Du hittar på en egen sak: skissar, väljer material och kombinerar tekniker du redan kan.",
+         example:"Planera och gör en egen förvaringslåda med lock."},
+        {name:"Bedöma", orig:"Värdering",
+         verbs:["Värdera","Motivera","Ta ställning","Föreslå"],
+         simile:"Du tittar på ditt färdiga arbete. Håller det? Blev det som skissen? Vad skulle du göra annorlunda nästa gång?",
+         example:"Vad blev bra med din låda och vad skulle du ändra? Varför?"}
+      ]
+    }
+  };
+
+  var current = "original", open = -1;
+  var stairs = document.getElementById("stairs");
+  var detail = document.getElementById("detail");
+
+  function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
+  function verbList(v){ return v.map(function(x){ return "<li>"+esc(x)+"</li>"; }).join(""); }
+
+  function renderStairs(){
+    var v = VARIANTS[current];
+    stairs.innerHTML = v.levels.map(function(l, i){
+      var sub = l.orig ? l.orig : l.desc;
+      return '<li><button class="step" type="button" aria-expanded="'+(i===open)+'" aria-controls="detail" data-i="'+i+'">' +
+        '<span class="n">Steg '+(i+1)+'</span><span class="name">'+esc(l.name)+'</span><span class="orig">'+esc(sub)+'</span></button></li>';
+    }).join("");
+  }
+
+  function renderDetail(){
+    var v = VARIANTS[current];
+    if (open < 0){ detail.innerHTML = '<p class="hint">Välj ett steg i trappan.</p>'; return; }
+    var l = v.levels[open], h = "";
+    h += '<h2>Steg '+(open+1)+': '+esc(l.name)+'</h2>';
+    h += '<p class="sub">'+esc(l.orig ? l.orig : l.desc)+'</p>';
+    if (l.simile) h += '<p class="liknelse">'+esc(l.simile)+'</p>';
+    h += '<h3>'+(l.orig ? "Ord för det här steget" : "Aktiva verb")+'</h3><ul class="verbs">'+verbList(l.verbs)+'</ul>';
+    h += '<h3>'+(l.orig ? "Prova själv" : "Exempel")+'</h3><p>'+esc(l.example)+'</p>';
+    detail.innerHTML = h;
+  }
+
+  function renderPrint(){
+    var v = VARIANTS[current], L = v.levels, kid = !!L[0].orig, h = "";
+    h += '<h1 class="p-title">'+esc(v.title)+'</h1><p class="p-sub">'+esc(v.sub)+'</p>';
+    h += '<div class="p-axis"><span>Lägre nivå av lärande</span><span>Högre nivå av lärande →</span></div>';
+    h += '<table><thead><tr><th style="width:11%"></th>' + L.map(function(l){
+      return '<th>'+esc(l.name)+'<small>'+esc(kid ? l.orig : l.desc)+'</small></th>';
+    }).join("") + '</tr></thead><tbody>';
+    if (kid) h += '<tr><td class="row-label">Som i '+(current==="fotboll"?"fotboll":"slöjd")+'</td>' + L.map(function(l){ return '<td style="text-align:left">'+esc(l.simile)+'</td>'; }).join("") + '</tr>';
+    h += '<tr><td class="row-label">'+(kid ? "Ord" : "Aktiva verb")+'</td>' + L.map(function(l){ return '<td><ul>'+verbList(l.verbs)+'</ul></td>'; }).join("") + '</tr>';
+    h += '<tr><td class="row-label">'+(kid ? "Prova själv" : "Exempel")+'</td>' + L.map(function(l){ return '<td>'+esc(l.example)+'</td>'; }).join("") + '</tr>';
+    h += '</tbody></table><div class="p-source">'+v.source+'</div>';
+    var out = document.getElementById("printout");
+    out.classList.toggle("kid", kid);
+    out.innerHTML = h;
+  }
+
+  function render(){
+    var v = VARIANTS[current];
+    document.getElementById("help").textContent = v.help;
+    document.getElementById("source").innerHTML = v.source;
+    document.querySelectorAll("[data-variant]").forEach(function(b){ b.setAttribute("aria-pressed", String(b.dataset.variant === current)); });
+    renderStairs(); renderDetail(); renderPrint();
+  }
+
+  document.querySelectorAll("[data-variant]").forEach(function(b){
+    b.addEventListener("click", function(){ current = b.dataset.variant; render(); });
+  });
+  stairs.addEventListener("click", function(e){
+    var b = e.target.closest(".step"); if (!b) return;
+    var i = +b.dataset.i; open = (open === i) ? -1 : i;
+    renderStairs(); renderDetail();
+    var again = stairs.querySelector('[data-i="'+i+'"]'); if (again) again.focus();
+  });
+
+  var baseTitle = document.title;
+  window.addEventListener("beforeprint", function(){ document.title = VARIANTS[current].pdfName; });
+  window.addEventListener("afterprint", function(){ document.title = baseTitle; });
+  document.getElementById("print").addEventListener("click", function(){ window.print(); });
+
+  render();
+})();
+</script>
+</body>
+</html>
