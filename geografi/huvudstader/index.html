@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Huvudstäder – e-lektioner</title>
+<meta name="description" content="Förhör huvudstäder i världens länder, världsdel för världsdel.">
+<link rel="preload" href="../../assets/fonts/atkinson-hyperlegible-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../../assets/fonts/atkinson-hyperlegible-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="../../assets/css/site.css">
+<link rel="stylesheet" href="../../assets/css/forhor.css">
+<script src="../../assets/js/theme.js"></script>
+</head>
+<body>
+<header class="site-header">
+  <div class="site-header-in">
+    <a class="brand" href="../../">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><ellipse cx="12" cy="12" rx="4" ry="9.5"/><path d="M2.5 12h19M4 7h16M4 17h16"/></svg>
+      e-lektioner
+    </a>
+    <ol class="crumbs" aria-label="Du är här">
+      <li><a href="../../#geografi">Geografi</a></li>
+      <li aria-current="page">Huvudstäder</li>
+    </ol>
+    <button class="theme-toggle" type="button">Mörkt läge</button>
+  </div>
+</header>
+
+<main id="app"></main>
+
+<script src="../../assets/js/lander.js"></script>
+<script src="../../assets/js/forhor.js"></script>
+<script>
+(function () {
+  const L = window.LANDER;
+  const groups = [...window.VARLDSDELAR.map(v => ({ id: v.id, name: v.name })), { id: "ALL", name: "Hela världen" }];
+  const capitalPool = L.map(x => ({ key: x.n, names: [x.c, ...(x.ca || [])] }));
+  const countryPool = L.map(x => ({ key: x.n, names: [x.n, ...(x.na || [])] }));
+
+  Forhor.start({
+    el: document.getElementById("app"),
+    storeKey: "e-lektioner-huvudstader",
+    title: "Huvudstäder",
+    parentNote: "Förhöret är gjort för dig som förälder som vill förhöra ditt barn: välj världsdel, läs frågan högt och låt barnet svara.",
+    groups,
+    noun: ["land", "länder"],
+    items: id => L.filter(x => id === "ALL" || x.w === id).map(x => Object.assign({ id: x.n }, x)),
+    intro: n => `Förhöret går i omgångar. Första omgången tar alla ${n} länder, och varje ny omgång tar bara de som blev fel eller osäkra i omgången innan.`,
+    settings: [{
+      name: "mode", legend: "Fråga om",
+      options: [["capital", "Huvudstaden"], ["country", "Landet"], ["mix", "Blandat"]], def: "capital"
+    }],
+    name: x => x.n,
+    statLabel: x => `${Forhor.esc(x.n)} <small>${Forhor.esc(x.c)}</small>`,
+    question(x, s) {
+      const askCapital = s.mode === "mix" ? Math.random() < 0.5 : s.mode === "capital";
+      const peers = L.filter(y => y.w === x.w && y.n !== x.n);
+      return askCapital
+        ? { ask: "Vad heter huvudstaden i", subject: x.n + "?", correct: x.c, wrong: Forhor.pick(peers, 3).map(y => y.c), key: x.n, pool: capitalPool, typedLabel: "Huvudstad" }
+        : { ask: "Vilket land har huvudstaden", subject: x.c + "?", correct: x.n, wrong: Forhor.pick(peers, 3).map(y => y.n), key: x.n, pool: countryPool, typedLabel: "Land" };
+    }
+  });
+})();
+</script>
+</body>
+</html>
