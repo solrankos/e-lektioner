@@ -41,17 +41,17 @@
 .fh-stamp{background:var(--panel);padding:26px 22px;margin-bottom:18px;border-radius:8px;outline:3px dotted var(--line);outline-offset:-10px}
 .fh-ask{color:var(--muted);margin:0 0 4px}
 .fh-subject{font-size:clamp(1.8rem,7vw,2.5rem);font-weight:700;line-height:1.1;margin:0;overflow-wrap:anywhere}
-.fh-answers{display:grid;gap:10px}
-.fh-answers button{text-align:left;padding:13px 16px;border:2px solid var(--line);border-radius:12px;background:var(--panel);font-weight:700;font-size:1.08rem}
-.fh-answers button:hover:not(:disabled){border-color:var(--ink)}
-.fh-answers button:disabled{cursor:default}
 .forhor .right{border-color:var(--fh-ok)!important;background:var(--fh-ok-bg)!important;color:var(--fh-ok)}
 .forhor .wrong{border-color:var(--fh-bad)!important;background:var(--fh-bad-bg)!important;color:var(--fh-bad)}
-.fh-typed{display:flex;gap:8px}
-.fh-typed input{flex:1;min-width:0;padding:12px 14px;border:2px solid var(--line);border-radius:12px;background:var(--panel);font:inherit;font-size:1.1rem;font-weight:700;color:var(--ink)}
+.fh-typed{display:flex;gap:8px;align-items:flex-start}
+.fh-combo{position:relative;flex:1;min-width:0}
+.fh-suggest{position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:5;margin:0;padding:4px;list-style:none;background:var(--panel);border:2px solid var(--line);border-radius:12px;max-height:16rem;overflow-y:auto;box-shadow:0 6px 18px rgba(0,0,0,.12)}
+.fh-suggest li{padding:10px 12px;border-radius:8px;cursor:pointer;font-weight:700}
+.fh-suggest li:hover{background:var(--chip)}
+.fh-suggest li.on{background:var(--chip-on);color:var(--chip-on-ink)}
+.fh-typed input{width:100%;padding:12px 14px;border:2px solid var(--line);border-radius:12px;background:var(--panel);font:inherit;font-size:1.1rem;font-weight:700;color:var(--ink)}
 .fh-typed button{padding:0 18px;border:0;border-radius:12px;background:var(--chip-on);color:var(--chip-on-ink)!important;font-weight:700}
 .fh-typed button:disabled{opacity:.5}
-.fh-unsure{margin-top:12px}
 .fh-hint{color:var(--muted);font-size:.95rem;margin:10px 0 0}
 .fh-feedback{min-height:1.5rem;margin:16px 0 0;font-weight:700}
 .fh-feedback.good{color:var(--fh-ok)}

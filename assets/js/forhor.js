@@ -48,10 +48,7 @@
     const $ = r => root.querySelector(`[data-r="${r}"]`);
     const view = v => root.querySelector(`[data-v="${v}"]`);
     const groups = cfg.groups;
-    const settingDefs = [...(cfg.settings || []), {
-      name: "format", legend: "Svara genom att",
-      options: [["choice", "Välja bland fyra"], ["typed", "Skriva själv"]], def: "choice"
-    }];
+    const settingDefs = cfg.settings || [];
     const defaults = () => Object.fromEntries(settingDefs.map(s => [s.name, s.def]));
     const freshGroup = () => ({ series: null, stats: {} });
 
@@ -84,7 +81,7 @@
       const g = G(), prev = g.series;
       g.series = {
         round: prev ? prev.round + 1 : 1,
-        queue: shuffle(ids), total: ids.length, right: 0, wrong: [], unsure: [],
+        queue: shuffle(ids), total: ids.length, right: 0, wrong: [],
         history: prev ? prev.history : [], phase: "active"
       };
       save();
@@ -109,51 +106,32 @@
       else prompt.innerHTML = `<div class="fh-stamp"><p class="fh-ask">${esc(q.ask)}</p><p class="fh-subject">${esc(q.subject)}</p></div>`;
       const area = $("answer");
       area.innerHTML = "";
-      if (S.settings.format === "choice") {
-        const box = document.createElement("div");
-        box.className = "fh-answers";
-        shuffle([q.correct, ...q.wrong]).forEach(opt => {
-          const b = document.createElement("button");
-          b.textContent = opt;
-          b.onclick = () => { if (current.answered) return; if (opt !== q.correct) b.classList.add("wrong"); answer(opt === q.correct); };
-          box.appendChild(b);
-        });
-        area.appendChild(box);
-        box.firstChild.focus({ preventScroll: true });
-      } else {
-        const form = document.createElement("div");
-        form.className = "fh-typed";
-        form.innerHTML = `<input type="text" autocomplete="off" autocapitalize="words" spellcheck="false" aria-label="${esc(q.typedLabel || "Ditt svar")}"><button>Bekräfta</button>`;
-        area.appendChild(form);
-        const input = form.querySelector("input");
-        const submit = () => {
-          if (current.answered || !input.value.trim()) return;
-          const r = judge(input.value, q.key, q.pool);
-          input.classList.add(r.ok ? "right" : "wrong");
-          answer(r.ok, false, r.ok && norm(r.hit) !== norm(q.correct));
-        };
-        form.querySelector("button").onclick = submit;
-        input.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); e.stopPropagation(); submit(); } });
-        input.focus({ preventScroll: true });
-      }
-      const u = document.createElement("button");
-      u.className = "fh-secondary fh-unsure";
-      u.textContent = "Osäker";
-      u.onclick = () => answer(false, true);
-      area.appendChild(u);
+      const form = document.createElement("div");
+      form.className = "fh-typed";
+      form.innerHTML = `<div class="fh-combo"><input type="text" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="fh-suggest" autocomplete="off" autocapitalize="words" spellcheck="false" aria-label="${esc(q.typedLabel || "Ditt svar")}"><ul class="fh-suggest" id="fh-suggest" role="listbox" hidden></ul></div><button>Bekräfta</button>`;
+      area.appendChild(form);
+      const input = form.querySelector("input");
+      const submit = () => {
+        if (current.answered || !input.value.trim()) return;
+        const r = judge(input.value, q.key, q.pool);
+        input.classList.add(r.ok ? "right" : "wrong");
+        answer(r.ok, r.ok && norm(r.hit) !== norm(q.correct));
+      };
+      autocomplete(input, form.querySelector(".fh-suggest"), q.pool, submit);
+      form.querySelector("button").onclick = submit;
+      input.focus({ preventScroll: true });
       if (q.hint) area.insertAdjacentHTML("beforeend", `<p class="fh-hint">${esc(q.hint)}</p>`);
     }
 
-    function answer(ok, unsure, other) {
+    function answer(ok, other) {
       if (current.answered) return;
       current.answered = true;
       const g = G(), sr = g.series, id = current.item.id, q = current.q;
       const st = g.stats[id] || (g.stats[id] = { asked: 0, wrong: 0 });
       st.asked++;
-      $("answer").querySelectorAll("button, input").forEach(el => {
-        el.disabled = true;
-        if (el.parentNode.classList.contains("fh-answers") && el.textContent === q.correct) el.classList.add("right");
-      });
+      $("answer").querySelectorAll("button, input").forEach(el => { el.disabled = true; });
+      const list = $("answer").querySelector(".fh-suggest");
+      if (list) list.hidden = true;
       if (cfg.onAnswer) cfg.onAnswer(current.item, ok);
       const fb = $("feedback");
       if (ok) {
@@ -161,9 +139,9 @@
         fb.textContent = other ? `Rätt! Facit: ${q.correct}.` : "Rätt!";
         fb.className = "fh-feedback good";
       } else {
-        if (unsure) { st.unsure = (st.unsure || 0) + 1; sr.unsure.push(id); } else st.wrong++;
+        st.wrong++;
         sr.wrong.push(id);
-        fb.textContent = unsure ? `Svaret är ${q.correct}. Den kommer med i nästa omgång.` : `Rätt svar är ${q.correct}.`;
+        fb.textContent = `Rätt svar är ${q.correct}.`;
         fb.className = "fh-feedback bad";
       }
       sr.queue.shift();
@@ -210,8 +188,8 @@
         const wrong = sr.wrong.slice().sort((a, b) => cfg.name(itemsById[a]).localeCompare(cfg.name(itemsById[b]), "sv"));
         body = `<div class="fh-status">
             <p class="fh-round">${sr.right} av ${sr.total}</p>
-            <p>Omgång ${sr.round} är klar. Det blev fel eller osäkert på ${wrong.length} ${noun(wrong.length)}:</p>
-            <ul class="fh-chips">${wrong.map(id => `<li>${esc(cfg.name(itemsById[id]))}${sr.unsure.includes(id) ? " (osäker)" : ""}</li>`).join("")}</ul>
+            <p>Omgång ${sr.round} är klar. Det blev fel på ${wrong.length} ${noun(wrong.length)}:</p>
+            <ul class="fh-chips">${wrong.map(id => `<li>${esc(cfg.name(itemsById[id]))}</li>`).join("")}</ul>
           </div>
           ${settings}<button class="fh-primary" data-a="nextRound">Starta omgång ${sr.round + 1} med ${wrong.length} ${noun(wrong.length)}</button>`;
       } else {
@@ -250,7 +228,7 @@
       const list = rows.length
         ? rows.map(([id, s]) => `
           <div class="fh-stat">
-            <div class="fh-top"><span class="fh-name">${label(id)}</span><span class="fh-num">${[s.wrong ? `${s.wrong} fel` : "", s.unsure ? `${s.unsure} osäker` : ""].filter(Boolean).join(", ")} av ${s.asked}</span></div>
+            <div class="fh-top"><span class="fh-name">${label(id)}</span><span class="fh-num">${miss(s)} fel av ${s.asked}</span></div>
             <div class="fh-meter"><div style="width:${(miss(s) / max) * 100}%"></div></div>
           </div>`).join("")
         : `<p class="fh-empty">Inga fel ännu. Här dyker frågorna upp när det blir fel på dem.</p>`;
@@ -261,7 +239,7 @@
           <div><strong>${asked - wrong}</strong><span>rätt</span></div>
           <div><strong>${asked ? Math.round(((asked - wrong) / asked) * 100) : 0}%</strong><span>träffsäkerhet</span></div>
         </div>
-        <h2>Oftast fel eller osäker</h2>
+        <h2>Oftast fel</h2>
         ${list}
         ${never.length ? `<details><summary>Aldrig fel (${never.length})</summary><p>${never.map(esc).join(", ")}</p></details>` : ""}
         ${historyHtml(g.series && g.series.history)}`;
@@ -270,17 +248,55 @@
 
     $("next").onclick = nextQuestion;
     $("pause").onclick = () => { renderHome(); show("home"); };
-    document.addEventListener("keydown", e => {
-      if (view("quiz").hidden || S.settings.format !== "choice" || !current || current.answered) return;
-      if (e.target.tagName === "INPUT") return;
-      const n = parseInt(e.key, 10);
-      const btns = [...root.querySelectorAll(".fh-answers button")];
-      if (n >= 1 && n <= btns.length) btns[n - 1].click();
-    });
     renderHome();
   }
 
-  function pick(arr, n) { return shuffle(arr).slice(0, n); }
+  function autocomplete(input, list, pool, submit) {
+    const entries = [];
+    pool.forEach(p => p.names.forEach(nm => entries.push({ key: p.key, label: p.names[0], n: norm(nm) })));
+    let shown = [], active = -1;
+    const close = () => {
+      list.hidden = true;
+      input.setAttribute("aria-expanded", "false");
+      input.removeAttribute("aria-activedescendant");
+      active = -1;
+    };
+    const paint = () => list.querySelectorAll("li").forEach((li, i) => {
+      const on = i === active;
+      li.classList.toggle("on", on);
+      li.setAttribute("aria-selected", on);
+      if (on) { input.setAttribute("aria-activedescendant", li.id); li.scrollIntoView({ block: "nearest" }); }
+    });
+    const choose = i => { input.value = shown[i]; close(); submit(); };
+    input.addEventListener("input", () => {
+      const n = norm(input.value);
+      if (!n) return close();
+      const seen = new Set();
+      shown = [];
+      entries.filter(e => e.n.startsWith(n))
+        .sort((a, b) => a.label.localeCompare(b.label, "sv"))
+        .forEach(e => { if (!seen.has(e.key) && shown.length < 6) { seen.add(e.key); shown.push(e.label); } });
+      if (!shown.length) return close();
+      active = -1;
+      list.innerHTML = shown.map((s, i) => `<li role="option" id="fh-opt-${i}" aria-selected="false">${esc(s)}</li>`).join("");
+      list.querySelectorAll("li").forEach((li, i) => { li.onmousedown = e => { e.preventDefault(); choose(i); }; });
+      list.hidden = false;
+      input.setAttribute("aria-expanded", "true");
+    });
+    input.addEventListener("keydown", e => {
+      const open = !list.hidden;
+      if (e.key === "ArrowDown" && open) { e.preventDefault(); active = (active + 1) % shown.length; paint(); }
+      else if (e.key === "ArrowUp" && open) { e.preventDefault(); active = (active - 1 + shown.length) % shown.length; paint(); }
+      else if (e.key === "Escape" && open) { e.preventDefault(); close(); }
+      else if (e.key === "Enter") {
+        e.preventDefault();
+        e.stopPropagation();
+        if (open && active >= 0) choose(active);
+        else { close(); submit(); }
+      }
+    });
+    input.addEventListener("blur", close);
+  }
 
-  window.Forhor = { start, pick, shuffle, esc, judge };
+  window.Forhor = { start, shuffle, esc, judge };
 })();
