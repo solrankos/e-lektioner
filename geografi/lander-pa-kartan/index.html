@@ -175,14 +175,12 @@
     groups,
     noun: ["land", "länder"],
     items: id => L.filter(x => id === "ALL" || x.w === id).map(x => Object.assign({ id: x.n }, x)),
-    intro: n => `Ett land i taget är markerat på kartan. Första omgången tar alla ${n} länder, och varje ny omgång tar bara de som blev fel eller osäkra. När man skriver behöver stavningen inte vara perfekt.`,
+    intro: n => `Ett land i taget är markerat på kartan. Första omgången tar alla ${n} länder, och varje ny omgång tar bara de som blev fel. När man skriver dyker förslag upp, och stavningen behöver inte vara perfekt.`,
     name: x => x.n,
     question(x) {
-      const peers = L.filter(y => y.w === x.w && y.n !== x.n);
       return {
         render: slot => showCountry(slot, x),
-        correct: x.n, wrong: Forhor.pick(peers, 3).map(y => y.n),
-        key: x.n, pool: countryPool, typedLabel: "Landets namn",
+        correct: x.n, key: x.n, pool: countryPool, typedLabel: "Landets namn",
         hint: "Tryck på kartan för att zooma in, och en gång till för att zooma ut."
       };
     },
